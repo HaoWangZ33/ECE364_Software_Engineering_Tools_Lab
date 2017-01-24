@@ -1,0 +1,45 @@
+#! /bin/bash
+#
+#$Author$
+#$Date$
+#$Revision$
+#$HeadURL$
+#$Id$
+
+if (( $# != 1 ))
+then
+    echo "Usage: ./treasure.bash <filename>"
+    exit 1
+else
+    xcoor=0
+    ycoor=0
+    x=0
+    y=0
+    echo "(0,0)"
+    line1=$(head -n1 $1)
+    IFS=' ' read -r -a array <<< $line1
+    first=${array[0]}
+    xcoor=${first:0:1}
+    ycoor=${first:1:2}
+    while (( $xcoor != $x || $ycoor != $y))
+    do
+        countx=0
+        #echo "$xcoor $ycoor     $x $y"
+        while read line;
+        do
+            if (( $xcoor == $countx ))
+            then
+                IFS=' ' read -r -a array <<< $line
+                loca=${array[$ycoor]}
+                x=$xcoor
+                y=$ycoor
+                xcoor=${loca:0:1}
+                ycoor=${loca:1}
+                echo "($x,$y)"
+            fi
+            ((countx=$countx+1))
+        done < $1
+    done
+    echo "Treasure found at: ($xcoor,$ycoor)"
+fi
+exit 0

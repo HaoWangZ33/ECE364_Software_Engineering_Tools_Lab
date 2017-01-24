@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<user>
+	<FirstName>1</FirstName>
+	<LastName>1</LastName>
+	<Address>123</Address>
+	<City>123</City>
+	<State>IN</State>
+	<ZIP>12344</ZIP>
+	<Email>1@1.c</Email>
+</user>

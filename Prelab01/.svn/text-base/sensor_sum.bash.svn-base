@@ -1,0 +1,26 @@
+#! /bin/bash
+#
+#$Author$
+#$Date$
+#$Revision$
+#$HeadURL$
+#$Id$
+
+if [[ $# != 1 ]]
+then
+    echo "usage: sensor_sum.bash log"
+elif [[ ! -r $1 ]]
+then
+    echo "error: $1 is not a readable file!"
+else
+    while read line; do
+        name=${line%%-*}
+        #s1=cut -+
+        #s2=cut -c3 $line
+        #s3=cut -c4 $line
+        #((sum=$s1+$s2+$s3))
+        echo "$name"
+    done < $1
+fi
+
+exit 0

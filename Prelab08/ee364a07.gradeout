@@ -1,0 +1,18 @@
+Prelab08/ee364a07/
+
+
+------------------------------------------------------------------------------------------
+FUNCTION                   | DESCRIPTION                | COMMENTS                   | POINTS    
+------------------------------------------------------------------------------------------
+checkOperation               ConnectionRefusedError       Test case passed.            2/2       
+checkOperation               No Exception Test            Test case passed.            2/2       
+checkOperation               OSError Exception Test       Test case passed.            2/2       
+checkOperation               Other Exception Test         Test case passed.            2/2       
+checkVicinity                                             Test case passed.            4/4       
+createPoint                  Invalid Input Test           Test case FAILED.            0/2       
+createPoint                  Valid Input Test             Test case passed.            2/2       
+distanceBetween              Different Cardinality Test   Test case FAILED.            0/2       
+distanceBetween              Same Cardinality Test        Test case passed.            2/2       
+------------------------------------------------------------------------------------------
+
+Total Score = 16

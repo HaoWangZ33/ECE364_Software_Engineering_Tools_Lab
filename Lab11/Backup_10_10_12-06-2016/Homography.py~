@@ -1,0 +1,189 @@
+#! /usr/bin/env python3.4
+#
+#$Author$
+#$Date$
+#$Revision$
+#$HeadURL$
+#$Id$
+
+import unittest
+from random import uniform
+from inspect import isclass
+from enum import Enum
+import scipy.interpolate as sc
+import numpy as np
+
+class Effect (Enum):
+    rotate90 = 'r90'
+    rotate180 = 'r180'
+    rotate270 = 'r270'
+    flipHorizontally = 'flipH'
+    flipVertically = 'flipV'
+    transpose = 'trans'
+
+class Homography:
+    def __init__(self, **kwargs):
+        self.forwardMatrix = 0
+        self.inverseMatrix = 0
+        self.sourcePs = 0
+        self.targetPs = 0
+        self.effect = 0
+
+        if 'homographyMatrix' in kwargs:
+            self.forwardMatrix = kwargs['homographyMatrix']
+            if self.forwardMatrix.shape != (3,3):
+                raise ValueError("Homography Matrix should have dimension of 3x3.")
+            for row in self.forwardMatrix:
+                for point in row:
+                    if not isinstance(point, np.float64):
+                        raise ValueError("Array must be type float64.")
+            self.inverseMatrix = np.linalg.inv(self.forwardMatrix)
+        else:
+            if 'sourcePoints' in kwargs and 'targetPoints' in kwargs:
+                self.sourcePs = kwargs['sourcePoints']
+                self.targetPs = kwargs['targetPoints']
+                if self.sourcePs.shape != (4,2) or self.targetPs.shape != (4,2):
+                    raise ValueError("Source/Target points should have dimension 4x2.")
+                for row in self.sourcePs:
+                    for point in row:
+                        if not isinstance(point, np.float64):
+                            raise ValueError("Points must be type float64")
+                for row in self.targetPs:
+                    for point in row:
+                        if not isinstance(point, np.float64):
+                            raise ValueError("Points must be type float64")
+                if 'effect' in kwargs:
+                    self.effect = kwargs['effect']
+                    if not isinstance(self.effect, Effect) and self.effect != None:
+                        raise TypeError('Wrong effect type.')
+                self.computeHomography(self.sourcePs, self.targetPs, self.effect)
+                self.inverseMatrix = np.linalg.inv(self.forwardMatrix)
+            else:
+                raise ValueError("Expecting homographyMatrix or sourcePoints and targetPoints.")
+    def computeHomography(self, sourcePoints, targetPoints, effect=None):
+        sourceP = self.sourcePs
+        if self.effect == 0 or self.effect == None:
+            targetP = self.targetPs
+        elif self.effect == Effect.rotate90:
+            targetP = np.array([self.targetPs[2],self.targetPs[0],self.targetPs[3],self.targetPs[1]])
+        elif self.effect == Effect.rotate180:
+            targetP = np.array([self.targetPs[3],self.targetPs[2],self.targetPs[1],self.targetPs[0]])
+        elif self.effect == Effect.rotate270:
+            targetP = np.array([self.targetPs[1],self.targetPs[3],self.targetPs[0],self.targetPs[2]])
+        elif self.effect == Effect.flipHorizontally:
+            targetP = np.array([self.targetPs[2],self.targetPs[3],self.targetPs[0],self.targetPs[1]])
+        elif self.effect == Effect.flipVertically:
+            targetP = np.array([self.targetPs[1],self.targetPs[0],self.targetPs[3],self.targetPs[2]])
+        elif self.effect == Effect.transpose:
+            targetP = np.array([self.targetPs[0],self.targetPs[2],self.targetPs[1],self.targetPs[3]])
+        A = []
+        B = []
+
+        for count in range(len(sourceP)):
+            A.append([sourceP[count][0], sourceP[count][1], 1, 0, 0, 0, (-1)*(targetP[count][0])*(sourceP[count][0]), (-1)*(targetP[count][0])*(sourceP[count][1])])
+            A.append([0, 0, 0, sourceP[count][0], sourceP[count][1], 1, (-1)*(targetP[count][1])*(sourceP[count][0]), (-1)*(targetP[count][1])*(sourceP[count][1])])
+            B.append([targetP[count][0]])
+            B.append([targetP[count][1]])
+        newA = np.array(A).reshape(8,8)
+        newB = np.array(B).reshape(8,1)
+        forwardMatrix = np.linalg.solve(newA, newB)
+        forwardMatrix = np.append(forwardMatrix, [1.0])
+        self.forwardMatrix = forwardMatrix.reshape(3,3)
+        self.inverseMatrix = np.linalg.inv(self.forwardMatrix)
+
+class Transformation:
+    def __init__(self, sourceImage, homography=None):
+        self.sourceImage = None
+        self.homography = None
+        if isinstance(sourceImage, np.ndarray):
+            self.sourceImage = sourceImage
+        else:
+            raise TypeError("sourceImage is not np.ndarray type.")
+        if homography != None:
+            if isinstance(homography, Homography):
+                self.homography = homography
+            else:
+                raise TypeError("homography is not type Homography.")
+
+    def setupTransformation(self, targetPoints, effect=None):
+        self.dimension = self.sourceImage.shape
+        self.sourcePs = np.array([[0.0, 0.0], [0.0, self.dimension[1] - 1], [self.dimension[0] - 1, 0.0], [self.dimension[0] - 1, self.dimension[1] - 1]])
+        self.targetPs = targetPoints
+        if self.homography == None:
+            self.homography = Homography(sourcePoints=self.sourcePs, targetPoints=self.targetPs, effect=effect)
+            self.forwardMatrix = self.homography.forwardMatrix
+        else:
+            self.forwardMatrix = self.homography.forwardMatrix
+
+    def transformImageOnto(self, containerImage):
+        if type(containerImage) is not type(self.sourceImage):
+            raise TypeError("Container Image is wrong type.")
+        elif np.ndim(containerImage) != np.ndim(self.sourceImage):
+            raise TypeError("Container Image does not have same dimension as source image.")
+        else:
+            self.inverseMatrix = self.homography.inverseMatrix
+            x_min=min(self.targetPs[0][0],self.targetPs[1][0],self.targetPs[2][0],self.targetPs[3][0])
+            x_max=max(self.targetPs[0][0],self.targetPs[1][0],self.targetPs[2][0],self.targetPs[3][0]) + 1
+            y_min=min(self.targetPs[0][1],self.targetPs[1][1],self.targetPs[2][1],self.targetPs[3][1])
+            y_max=max(self.targetPs[0][1],self.targetPs[1][1],self.targetPs[2][1],self.targetPs[3][1]) + 1
+
+            Image = sc.RectBivariateSpline(np.arange(0.0, self.dimension[0]), np.arange(0.0, self.dimension[1]), self.sourceImage, kx=1, ky=1)
+            for row in np.arange(y_min, y_max):
+                for col in np.arange(x_min, x_max):
+                    point = np.array([[col], [row], [1]])
+                    point_inv = np.dot(self.inverseMatrix, point)
+                    point_final = np.array([[point_inv[0] / point_inv[2]], [point_inv[1] / point_inv[2]], [point_inv[2] / point_inv[2]]])
+                    point_final=np.round(point_final,3)
+                    if point_final[0] >= 0 and point_final[0] <= (self.dimension[1] - 1) and point_final[1] >= 0 and point_final[1] <= (self.dimension[0] - 1):
+                        value = Image.ev(point_final[1], point_final[0], dx = 0, dy = 0)
+                        containerImage[row][col] = value.round()
+            return containerImage
+
+class ColorTransformation(Transformation):
+    def __init__(self, sourceImage, homography=None):
+        Transformation.__init__(self, sourceImage, homography)
+        self.dimension = sourceImage.shape
+        if len(self.dimension) != 3 or self.dimension[2] != 3:
+            raise ValueError("sourceImage is not a color image.")
+        self.sourceImage = sourceImage
+
+    def transformImageOnto(self, containerImage):
+        self.inverseMatrix = self.homography.inverseMatrix
+        x_min=min(self.targetPs[0][0],self.targetPs[1][0],self.targetPs[2][0],self.targetPs[3][0])
+        x_max=max(self.targetPs[0][0],self.targetPs[1][0],self.targetPs[2][0],self.targetPs[3][0]) + 1
+        y_min=min(self.targetPs[0][1],self.targetPs[1][1],self.targetPs[2][1],self.targetPs[3][1])
+        y_max=max(self.targetPs[0][1],self.targetPs[1][1],self.targetPs[2][1],self.targetPs[3][1]) + 1
+        self.dimension = self.sourceImage.shape
+        row, col, rbg = self.dimension
+
+        red = np.empty([row, col])
+        red = self.sourceImage[:,:,0]
+
+        blue = np.empty([row, col])
+        blue = self.sourceImage[:,:,1]
+
+        green = np.empty([row, col])
+        green = self.sourceImage[:,:,2]
+
+        Image_red = sc.RectBivariateSpline(np.arange(0.0, row), np.arange(0.0, col), red, kx=1, ky=1)
+        Image_blue = sc.RectBivariateSpline(np.arange(0.0, row), np.arange(0.0, col), blue, kx=1, ky=1)
+        Image_green = sc.RectBivariateSpline(np.arange(0.0, row), np.arange(0.0, col), green, kx=1, ky=1)
+
+        for row in np.arange(y_min, y_max):
+            for col in np.arange(x_min, x_max):
+                point = np.array([[col], [row], [1]])
+                point_inv = np.dot(self.inverseMatrix, point)
+                point_final = np.array([[point_inv[0] / point_inv[2]], [point_inv[1] / point_inv[2]], [point_inv[2] / point_inv[2]]])
+                point_final=np.round(point_final,3)
+                if point_final[0] >= 0 and point_final[0] <= (self.dimension[1] - 1) and point_final[1] >= 0 and point_final[1] <= (self.dimension[0] - 1):
+                    value_red = Image_red.ev(point_final[1], point_final[0], dx = 0, dy = 0)
+                    value_blue = Image_blue.ev(point_final[1], point_final[0], dx = 0, dy = 0)
+                    value_green = Image_green.ev(point_final[1], point_final[0], dx = 0, dy = 0)
+                    containerImage[row][col][0] = value_red.round()
+                    containerImage[row][col][1] = value_blue.round()
+                    containerImage[row][col][2] = value_green.round()
+            return containerImage
+
+
+
+

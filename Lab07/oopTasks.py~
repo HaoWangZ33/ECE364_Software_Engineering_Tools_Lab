@@ -1,0 +1,137 @@
+#! /usr/bin/env python3.4
+#
+#$Author: ee364a07 $
+#$Date: 2016-10-18 11:07:58 -0400 (Tue, 18 Oct 2016) $
+#$Revision: 94704 $
+#$HeadURL: svn+ssh://ece364sv@ecegrid-thin1/home/ecegrid/a/ece364sv/svn/F16/students/ee364a07/Lab07/oopTasks.py $
+#$Id: oopTasks.py 94704 2016-10-18 15:07:58Z ee364a07 $
+import re
+class Course:
+
+    def __init__(self, courseID, fst, snd, final):
+        self.courseID = courseID
+        self.fst = fst
+        self.snd = snd
+        self.final = final
+        self.total = 0.25 * fst + 0.25 * snd + 0.50 * final
+        self.letter = self.getLetterGrade()
+
+    def __str__(self):
+        return self.courseID + ": (" + "{0:.2f}".format(self.fst) + ", " + "{0:.2f}".format(self.snd) + ", " + "{0:.2f}".format(self.final) + ") = (" + "{0:.2f}".format(self.total) + ", " + self.letter + ")"
+
+    def getLetterGrade(self):
+        if self.total >= 90:
+            return 'A'
+        elif self.total >= 80:
+            return 'B'
+        elif self.total >= 70:
+            return 'C'
+        elif self.total >= 60:
+            return 'D'
+        else:
+            return 'F'
+
+class Student:
+
+    def __init__(self, name):
+        self.name = name
+        self.courses = {}
+
+    def __str__(self):
+        result = []
+        for key, value in self.courses.items():
+            result.append("(" + key + ": " + value.letter + ")")
+        result.sort()
+        final = self.name + ": "
+        for item in result:
+            final = final + item + ", "
+        return final[:-2]
+
+    def addCourse(self, course):
+        self.courses[course.courseID] = course
+
+    def generateTranscript(self):
+        result = []
+        for key, value in self.courses.items():
+            result.append(str(value))
+        result.sort()
+        final = self.name
+        for item in result:
+            final = final + "\n" + item
+        return final
+
+
+
+class School:
+
+    def __init__(self, name):
+        self.name = name
+        self.students = {}
+
+    def __str__(self):
+        length = len(self.students)
+        result = self.name + ": " + str(length) + " Students"
+        allname = []
+        for key, value in self.students.items():
+            allname.append(key)
+        allname.sort()
+        for item in allname:
+            result = result + "\n" + item
+        return result
+
+    def loadStudentsInfo(self, filename):
+        with open(filename, "r") as input:
+            allline = input.read()
+        students = allline.split("\n\n")
+        for person in students:
+            result = person.split("\n")
+            student_name = Student(result[0])
+            classes = result[2:]
+            for clas in classes:
+                grade = clas.split(" ")
+                grade = grade[-4:]
+                course_name = grade[0][:-1]
+                fst = int(grade[1][:-1])
+                snd = int(grade[2][:-1])
+                final = int(grade[3])
+                temp_course = Course(course_name, fst, snd, final)
+                student_name.addCourse(temp_course)
+            self.students[student_name.name] = student_name
+
+    def saveSchoolInfo(self, filename):
+        length = len(self.students)
+        allname = []
+        for key, value in self.students.items():
+            allname.append(key)
+        allname.sort()
+        count = 1
+        with open (filename, "w") as output:
+            for name in allname:
+                trans = self.students[name].generateTranscript()
+                output.write(trans)
+                if count < length:
+                    output.write("\n\n")
+                count = count + 1
+
+
+if __name__ == "__main__":
+    c1 = Course('ECE678', 89, 86, 79)
+    c2 = Course('ECE474', 96, 90, 67)
+    c3 = Course('ECE377', 64, 86, 79)
+    c4 = Course('ECE274', 99, 72, 74)
+
+    s1 = Student("John Smith")
+    s1.addCourse(c1)
+    s1.addCourse(c2)
+    s1.addCourse(c3)
+    s1.addCourse(c4)
+
+    sch1 = School("Purdue")
+    sch1.loadStudentsInfo("school_data_source.txt")
+    sch1.saveSchoolInfo("my_output.txt")
+
+
+
+
+
+

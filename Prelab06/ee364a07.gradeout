@@ -1,0 +1,14 @@
+Prelab06/ee364a07/
+
+
+------------------------------------------------------------------------------------------
+FUNCTION                   | DESCRIPTION                | COMMENTS                   | POINTS    
+------------------------------------------------------------------------------------------
+extractFloats                                             Test case FAILED.            0         
+findFunctions                                             Test case passed.            4         
+getQueryParameters                                        Test case passed.            4         
+getUrlParts                                               Test case passed.            4         
+getWords                                                  Test case FAILED.            0         
+------------------------------------------------------------------------------------------
+
+Total Score = 12

@@ -1,0 +1,29 @@
+Prelab10/ee364a07/
+
+{0:,.3f}
+{0:,.2f}
+{0:,.2f}
+{0:,.2f}
+{0:,.2f}
+{0:,.2f}
+{0:,.2f}
+{0:,.2f}
+{0:,.2f}
+
+------------------------------------------------------------------------------------------
+FUNCTION                  | DESCRIPTION               | COMMENTS                  | POINTS    
+------------------------------------------------------------------------------------------
+clear                                                   Test case passed.           1/1       
+decimalDigits                                           Test case FAILED.           0/1       
+leadingZero                                             Test case FAILED.           0/1       
+math                        addition                    Test case FAILED.           0/3       
+math                        division                    Test case FAILED.           0/3       
+math                        multiplication              Test case FAILED.           0/3       
+math                        subtraction                 Test case FAILED.           0/3       
+maxDigits                                               Test case passed.           1/1       
+successive                                              Test case FAILED.           0/2       
+thousandsSeparator          thousands checked           Test case FAILED.           0/1       
+thousandsSeparator          thousands unchecked         Test case FAILED.           0/1       
+------------------------------------------------------------------------------------------
+
+Total Score = 2

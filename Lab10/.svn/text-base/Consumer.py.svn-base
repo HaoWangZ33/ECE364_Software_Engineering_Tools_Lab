@@ -1,0 +1,157 @@
+#! /usr/bin/env python3.4
+#
+#$Author$
+#$Date$
+#$Revision$
+#$HeadURL$
+#$Id$
+
+import sys
+import re
+from PySide.QtGui import *
+from BasicUI import *
+
+
+class Consumer(QMainWindow, Ui_MainWindow):
+
+    states = ["AK", "AL", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY",
+              "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND",
+              "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
+
+    def __init__(self, parent=None):
+
+        super(Consumer, self).__init__(parent)
+        self.setupUi(self)
+
+        self.firstNameLineEdit.textChanged.connect(self.botton)
+        self.lastNameLineEdit.textChanged.connect(self.botton)
+        self.addressLineEdit.textChanged.connect(self.botton)
+        self.cityLineEdit.textChanged.connect(self.botton)
+        self.stateLineEdit.textChanged.connect(self.botton)
+        self.zipLineEdit.textChanged.connect(self.botton)
+        self.emailLineEdit.textChanged.connect(self.botton)
+
+        self.clearButton.clicked.connect(self.clear)
+        self.loadButton.clicked.connect(self.loadData)
+        self.saveToTargetButton.clicked.connect(self.save)
+
+    def save(self):
+        firstname = self.firstNameLineEdit.text()
+        lastname = self.lastNameLineEdit.text()
+        address = self.addressLineEdit.text()
+        city = self.cityLineEdit.text()
+        state = self.stateLineEdit.text()
+        zip = self.zipLineEdit.text()
+        email = self.emailLineEdit.text()
+
+        #check zip
+        zipcheck = True
+        if len(zip) != 5 :
+            zipcheck = False
+        ziplist = list(zip)
+        for item in ziplist:
+            if item not in ['0','1','2','3','4','5','6','7','8','9']:
+                zipcheck = False
+
+        #check email
+        expr = r"\w+@\w+\.\w+"
+        newemail = re.match(expr, email)
+
+        #check all
+        if state not in self.states:
+            self.errorInfoLabel.setText("Error: Invalid State.")
+        elif zipcheck == False:
+            self.errorInfoLabel.setText("Error: Invalid ZIP.")
+        elif newemail == None:
+            self.errorInfoLabel.setText("Error: Invalid Email.")
+        elif firstname == "":
+            self.errorInfoLabel.setText("Error: Invalid FirstName.")
+        elif lastname == "":
+            self.errorInfoLabel.setText("Error: Invalid LastName.")
+        elif address == "":
+            self.errorInfoLabel.setText("Error: Invalid Address.")
+        elif city == "":
+            self.errorInfoLabel.setText("Error: Invalid City.")
+        else:
+            self.errorInfoLabel.setText("")
+            with open("target.xml", "w")as outfile:
+                outfile.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
+                outfile.write("\n<user>\n")
+                outfile.write("\t<FirstName>"+ firstname +"</FirstName>\n")
+                outfile.write("\t<LastName>"+ lastname +"</LastName>\n")
+                outfile.write("\t<Address>"+ address +"</Address>\n")
+                outfile.write("\t<City>"+ city +"</City>\n")
+                outfile.write("\t<State>" + state + "</State>\n")
+                outfile.write("\t<ZIP>" + zip + "</ZIP>\n")
+                outfile.write("\t<Email>" + email + "</Email>\n</user>\n")
+
+
+    def botton(self):
+        self.saveToTargetButton.setEnabled(True)
+        self.loadButton.setEnabled(False)
+
+    def clear(self):
+        self.firstNameLineEdit.setText("")
+        self.lastNameLineEdit.setText("")
+        self.addressLineEdit.setText("")
+        self.cityLineEdit.setText("")
+        self.stateLineEdit.setText("")
+        self.zipLineEdit.setText("")
+        self.emailLineEdit.setText("")
+        self.saveToTargetButton.setEnabled(False)
+        self.loadButton.setEnabled(True)
+        self.errorInfoLabel.setText("")
+
+
+
+    def loadDataFromFile(self, filePath):
+        with open(filePath, "r")as infile:
+            readfile = infile.read()
+        expr = r"<FirstName>(.*?)</FirstName>"
+        firstname = re.search(expr, readfile).group(1)
+        expr = r"<LastName>(.*?)</LastName>"
+        lastname = re.search(expr, readfile).group(1)
+        expr = r"<Address>(.*?)</Address>"
+        address = re.search(expr, readfile).group(1)
+        expr = r"<City>(.*?)</City>"
+        city = re.search(expr, readfile).group(1)
+        expr = r"<State>(.*?)</State>"
+        state = re.search(expr, readfile).group(1)
+        expr = r"<ZIP>(.*?)</ZIP>"
+        zip = re.search(expr, readfile).group(1)
+        expr = r"<Email>(.*?)</Email>"
+        email = re.search(expr, readfile).group(1)
+
+        self.firstNameLineEdit.setText(firstname)
+        self.lastNameLineEdit.setText(lastname)
+        self.addressLineEdit.setText(address)
+        self.cityLineEdit.setText(city)
+        self.stateLineEdit.setText(state)
+        self.zipLineEdit.setText(zip)
+        self.emailLineEdit.setText(email)
+        self.saveToTargetButton.setEnabled(True)
+        self.loadButton.setEnabled(False)
+        self.errorInfoLabel.setText("")
+
+
+    def loadData(self):
+        """
+        Obtain a file name from a file dialog, and pass it on to the loading method. This is to facilitate automated
+        testing. Invoke this method when clicking on the 'load' button.
+
+        *** DO NOT MODIFY THIS METHOD! ***
+        """
+        filePath, _ = QFileDialog.getOpenFileName(self, caption='Open XML file ...', filter="XML files (*.xml)")
+
+        if not filePath:
+            return
+
+        self.loadDataFromFile(filePath)
+
+
+if __name__ == "__main__":
+    currentApp = QApplication(sys.argv)
+    currentForm = Consumer()
+
+    currentForm.show()
+    currentApp.exec_()

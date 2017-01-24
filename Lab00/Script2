@@ -1,0 +1,15 @@
+#! /bin/bash
+#
+#$Author: ee364a07 $
+#$Date: 2016-08-23 10:44:23 -0400 (Tue, 23 Aug 2016) $
+#$Revision: 91045 $
+#$HeadURL: svn+ssh://ece364sv@ecegrid-thin1/home/ecegrid/a/ece364sv/svn/F16/students/ee364a07/Lab00/Script2 $
+#$Id: Script2 91045 2016-08-23 14:44:23Z ee364a07 $
+
+Value=$1
+Count=$Value
+while (($Count >= 0))
+do
+    echo "$Count"
+    ((Count=$Count - 1))
+done

@@ -1,0 +1,86 @@
+#! /usr/bin/env python3.4
+#
+#$Author: ee364a07 $
+#$Date: 2016-11-06 23:54:33 -0500 (Sun, 06 Nov 2016) $
+#$Revision: 95509 $
+#$HeadURL: svn+ssh://ece364sv@ecegrid-thin1/home/ecegrid/a/ece364sv/svn/F16/students/ee364a07/Prelab10/simpleMath.py $
+#$Id: simpleMath.py 95509 2016-11-07 04:54:33Z ee364a07 $
+
+#/opt/python3/current/lib/python3.4/site-packages/PySide/scripts
+#python3.4 <file_path>/uic.py <input ".ui" file> -o <output ".py" file>
+
+import operator
+import sys
+from PySide.QtCore import *
+from PySide.QtGui import *
+from calculator import *
+
+class simpleMath(QMainWindow, Ui_Calculator):
+
+    def __init__(self, parent=None):
+        super(simpleMath, self).__init__(parent)
+        self.setupUi(self)
+
+        self.txtDisplay.setText("0.")
+        self.formula = ""
+
+        self.setWindowTitle('ECE364 Calculator')
+        self.btn0.clicked.connect(lambda: self.push(0))
+        self.btn1.clicked.connect(lambda: self.push(1))
+        self.btn2.clicked.connect(lambda: self.push(2))
+        self.btn3.clicked.connect(lambda: self.push(3))
+        self.btn4.clicked.connect(lambda: self.push(4))
+        self.btn5.clicked.connect(lambda: self.push(5))
+        self.btn6.clicked.connect(lambda: self.push(6))
+        self.btn7.clicked.connect(lambda: self.push(7))
+        self.btn8.clicked.connect(lambda: self.push(8))
+        self.btn9.clicked.connect(lambda: self.push(9))
+        self.btnDot.clicked.connect(lambda: self.push('.'))
+        self.btnPlus.clicked.connect(lambda: self.push('+'))
+        self.btnMinus.clicked.connect(lambda: self.push('-'))
+        self.btnMultiply.clicked.connect(lambda: self.push('*'))
+        self.btnDivide.clicked.connect(lambda: self.push('/'))
+        self.btnEqual.clicked.connect(lambda: self.push('='))
+        self.btnClear.clicked.connect(lambda: self.push('c'))
+
+
+
+    def push(self,key):
+        if key == 'c':
+            self.txtDisplay.setText("0.")
+            self.formula = ""
+        else:
+            if key == '=':
+                self.formula = str(self.calculate())
+                decimals = self.cboDecimal.currentIndex()
+                if self.formula != "Error":
+                    if self.chkSeparator.isChecked() == True:
+                        if decimals == 0:
+                            new_expr = "{0:,}".format(int(float(self.formula)))
+                            self.formula = str(new_expr)
+                        else:
+                            decimals = "{0:,."+str(decimals)+"f}"
+                            print(decimals)
+                            self.formula = decimals.format(float(self.formula))
+                    elif decimals == 0 :
+                        new_expr = int(float(self.formula))
+                        self.formula = str(new_expr)
+                    else:
+                        decimals = "{0:,."+str(decimals)+"f}"
+                        print(decimals)
+
+                new = self.formula.replace(",","")
+                if len(new) > 12 and new != "Error in Mathematical Expression. Press C to start over again":
+                    self.formula = "Output has more than 12 digits. Press C to start over again"
+            else:
+                self.formula  = self.formula + str(key)
+                self.txtDisplay.setText(self.formula)
+
+    def calculate(self):
+        pass
+
+if __name__ == "__main__":
+    currentApp = QApplication(sys.argv)
+    currentForm = simpleMath()
+    currentForm.show()
+    currentApp.exec_()

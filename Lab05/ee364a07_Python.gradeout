@@ -1,0 +1,22 @@
+Lab05/ee364a07
+
+
+------------------------------------------------------------------------------------------
+FUNCTION                   | DESCRIPTION                | COMMENTS                   | POINTS    
+------------------------------------------------------------------------------------------
+getCallActivity              Count Check Test             Test case passed.            2         
+getCallActivity              Duration Check Test          Test case passed.            5         
+getCallActivity              User 1 Test                  Test case passed.            4         
+getCallActivity              User 2 Test                  Test case passed.            4         
+getCallersOf                 Invalid Number Test          Test case passed.            5         
+getCallersOf                 Valid Number Test            Test case passed.            5         
+isColumnPuzzle               Column Puzzle Test           Test case passed.            1         
+isColumnPuzzle               Row Puzzle Test              Test case passed.            1         
+isValidOutput                'Bad' Solution 1 Test        Test case passed.            2         
+isValidOutput                'Bad' Solution 2 Test        Test case passed.            2         
+isValidOutput                'Good' Solution Test         Test case passed.            2         
+solvePuzzle                  Solve Column Puzzle Test     Test case passed.            8         
+solvePuzzle                  Solve Row Puzzle Test        Test case passed.            9         
+------------------------------------------------------------------------------------------
+
+Total Score = 50

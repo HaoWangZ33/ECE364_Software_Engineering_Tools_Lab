@@ -1,0 +1,20 @@
+#! /bin/bash
+#
+#$Author$
+#$Date$
+#$Revision$
+#$HeadURL$
+#$Id$
+
+for input in $@
+do
+    if [[ -r $input ]]
+    then
+        echo "File $input is readable!"
+    elif [[ ! -r $input || ! -e $input ]]
+    then
+        touch $input
+    fi
+done
+
+exit 0
